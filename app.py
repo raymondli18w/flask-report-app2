@@ -55,12 +55,12 @@ def filter_report():
 
     df = pd.read_excel(excel_file)
 
-    if 'Activity Date' not in df.columns:
-        return "The column 'Activity Date' is missing in the Excel file.", 500
+    if 'Shipped Date' not in df.columns:
+        return "The column 'Shipped Date' is missing in the Excel file.", 500
 
-    df['Activity Date'] = pd.to_datetime(df['Activity Date'], errors='coerce')
+    df['Shipped Date'] = pd.to_datetime(df['Shipped Date'], errors='coerce')
 
-    mask = (df['Activity Date'] >= pd.to_datetime(start_date)) & (df['Activity Date'] <= pd.to_datetime(end_date))
+    mask = (df['Shipped Date'] >= pd.to_datetime(start_date)) & (df['Shipped Date'] <= pd.to_datetime(end_date))
     filtered_df = df.loc[mask]
 
     if filtered_df.empty:
@@ -77,7 +77,7 @@ def filter_report():
         io.BytesIO(csv_buffer.getvalue().encode()),
         mimetype='text/csv',
         as_attachment=True,
-        download_name=filename  # For Flask 2.x+
+        download_name=filename
     )
 
 # Add the /ping route here
