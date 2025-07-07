@@ -5,8 +5,8 @@ import requests
 
 app = Flask(__name__)
 
-# Replace this with your Dropbox direct download link (must end with ?dl=1)
-DROPBOX_LINK = "https://www.dropbox.com/scl/fi/cfssje129vu9pbb8p4cjk/latest.xlsx?rlkey=gruo7e9iteu23rz2f5hdl2nbw&st=o3au5c5u&dl=1"
+# Dropbox direct download link to your latest Excel file
+DROPBOX_FILE_URL = "https://www.dropbox.com/scl/fi/cfssje129vu9pbb8p4cjk/latest.xlsx?rlkey=1xn1ona4h5yv653yak4hxieoz&dl=1"
 
 HTML_PAGE = """
 <!doctype html>
@@ -37,27 +37,54 @@ def filter_report():
     if not start_date or not end_date:
         return "Please provide start_date and end_date in YYYY-MM-DD format.", 400
 
+    # Download the Excel file from Dropbox
     try:
-        # Download Excel file from Dropbox
-        response = requests.get(DROPBOX_LINK)
-        response.raise_for_status()  # Raise error if request failed
-
-        # Load Excel file into pandas dataframe
-        excel_data = io.BytesIO(response.content)
-        df = pd.read_excel(excel_data)
-
+        response = requests.get(DROPBOX_FILE_URL)
+        response.raise_for_status()
     except Exception as e:
-        return f"Failed to fetch or read Excel file: {e}", 500
+        return f"Failed to download Excel file: {str(e)}", 500
 
-    date_column = 'Shipped Date'
+    try:
+        # Load Excel file into DataFrame from bytes
+        df = pd.read_excel(io.BytesIO(response.content))
+    except Exception as e:
+        return f"Failed to read Excel file: {str(e)}", 500
 
-    if date_column not in df.columns:
-        return f"The column '{date_column}' is missing in the Excel file.", 500
+    # Check if 'shipped date' column exists (case insensitive)
+    df_columns_lower = [col.lower() for col in df.columns]
+    if 'shipped date' not in df_columns_lower:
+        return "The column 'shipped date' is missing in the Excel file.", 500
 
-    df[date_column] = pd.to_datetime(df[date_column], errors='coerce')
+    # Normalize column name to access
+    shipped_date_col = [col for col in df.columns if col.lower() == 'shipped date'][0]
 
-    mask = (df[date_column] >= pd.to_datetime(start_date)) & (df[date_column] <= pd.to_datetime(end_date))
+    # Convert shipped date to datetime
+    df[shipped_date_col] = pd.to_datetime(df[shipped_date_col], errors='coerce')
+
+    # Filter by date range
+    mask = (df[shipped_date_col] >= pd.to_datetime(start_date)) & (df[shipped_date_col] <= pd.to_datetime(end_date))
     filtered_df = df.loc[mask]
 
     if filtered_df.empty:
-        return f"No data found
+        return f"No data found between {start_date} and {end_date}.", 404
+
+    # Export filtered data to CSV in memory
+    csv_buffer = io.StringIO()
+    filtered_df.to_csv(csv_buffer, index=False)
+    csv_buffer.seek(0)
+
+    filename = f"report_{start_date}_to_{end_date}.csv"
+
+    return send_file(
+        io.BytesIO(csv_buffer.getvalue().encode('utf-8')),
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name=filename
+    )
+
+@app.route('/ping')
+def ping():
+    return "pong", 200
+
+if __name__ == '__main__':
+    app.run(debug=True)
