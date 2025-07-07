@@ -5,15 +5,14 @@ import requests
 
 app = Flask(__name__)
 
-# Use your OneDrive API direct download link here
-ONEDRIVE_FILE_URL = "https://api.onedrive.com/v1.0/shares/u!EYwU9rsnIGJBlRaM3v_iRNkBaMrUrEkRCWjMrUA8wS4cJw/root/content"
+# Your OneDrive API link to the public Excel file
+ONEDRIVE_FILE_URL = "https://api.onedrive.com/v1.0/shares/u!EYwU9rsnIGJBlRaM3v_iRNkBWRkE2tulp-oBFpTt3LUoUw/root/content"
 
+# HTML page for date input
 HTML_PAGE = """
 <!doctype html>
 <html>
-<head>
-  <title>Filter and Export Report</title>
-</head>
+<head><title>Filter Report</title></head>
 <body>
   <h2>Filter Report by Date Range</h2>
   <form action="/filter" method="get">
@@ -38,41 +37,39 @@ def filter_report():
         return "Please provide start_date and end_date in YYYY-MM-DD format.", 400
 
     try:
-        # Download Excel file from OneDrive API link
         response = requests.get(ONEDRIVE_FILE_URL)
         response.raise_for_status()
-        excel_data = io.BytesIO(response.content)
+        excel_bytes = io.BytesIO(response.content)
     except Exception as e:
-        return f"Failed to fetch Excel file from OneDrive: {str(e)}", 500
+        return f"Failed to fetch Excel file from OneDrive: {e}", 500
 
-    df = pd.read_excel(excel_data)
+    try:
+        df = pd.read_excel(excel_bytes)
 
-    if 'Shipped Date' not in df.columns:
-        return "The column 'Shipped Date' is missing in the Excel file.", 500
+        if 'Shipped Date' not in df.columns:
+            return "The column 'Shipped Date' is missing in the Excel file.", 500
 
-    # Convert column to datetime
-    df['Shipped Date'] = pd.to_datetime(df['Shipped Date'], errors='coerce')
+        df['Shipped Date'] = pd.to_datetime(df['Shipped Date'], errors='coerce')
+        mask = (df['Shipped Date'] >= pd.to_datetime(start_date)) & (df['Shipped Date'] <= pd.to_datetime(end_date))
+        filtered_df = df.loc[mask]
 
-    # Filter by date range
-    mask = (df['Shipped Date'] >= pd.to_datetime(start_date)) & (df['Shipped Date'] <= pd.to_datetime(end_date))
-    filtered_df = df.loc[mask]
+        if filtered_df.empty:
+            return f"No data found between {start_date} and {end_date}", 404
 
-    if filtered_df.empty:
-        return f"No data found between {start_date} and {end_date}", 404
+        csv_buffer = io.StringIO()
+        filtered_df.to_csv(csv_buffer, index=False)
+        csv_buffer.seek(0)
 
-    # Export to CSV in memory
-    csv_buffer = io.StringIO()
-    filtered_df.to_csv(csv_buffer, index=False)
-    csv_buffer.seek(0)
+        filename = f"report_{start_date}_to_{end_date}.csv"
+        return send_file(
+            io.BytesIO(csv_buffer.getvalue().encode()),
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name=filename
+        )
 
-    filename = f"ledger_{start_date}_to_{end_date}.csv"
-
-    return send_file(
-        io.BytesIO(csv_buffer.getvalue().encode()),
-        mimetype='text/csv',
-        as_attachment=True,
-        download_name=filename
-    )
+    except Exception as e:
+        return f"Error processing Excel file: {e}", 500
 
 @app.route('/ping')
 def ping():
