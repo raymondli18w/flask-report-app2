@@ -80,6 +80,11 @@ def filter_report():
         download_name=filename  # For Flask 2.x+
     )
 
+# Add the /ping route here
+@app.route("/ping")
+def ping():
+    return "pong", 200
+
 # Run the app
 if __name__ == '__main__':
     app.run(debug=True)
