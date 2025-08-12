@@ -1,90 +1,108 @@
 from flask import Flask, request, send_file, render_template_string
 import pandas as pd
-import io
-import requests
+from datetime import datetime
 
 app = Flask(__name__)
 
-# Dropbox direct download link to your latest Excel file
-DROPBOX_FILE_URL = "https://www.dropbox.com/scl/fi/cfssje129vu9pbb8p4cjk/latest.xlsx?rlkey=1xn1ona4h5yv653yak4hxieoz&dl=1"
-
-HTML_PAGE = """
+HTML_FORM = """
 <!doctype html>
-<html>
-<head>
-  <title>Filter and Export Report</title>
-</head>
-<body>
-  <h2>Filter Report by Date Range</h2>
-  <form action="/filter" method="get">
-    Start Date: <input type="date" name="start_date" required>
-    End Date: <input type="date" name="end_date" required>
-    <button type="submit">Export CSV</button>
-  </form>
-</body>
-</html>
+<title>Filter Shipped Date</title>
+<h2>Filter data by shipped date range</h2>
+<form method="POST">
+  Start Date: <input type="date" name="start_date" required>
+  End Date: <input type="date" name="end_date" required>
+  <input type="submit" value="Filter and Download Excel">
+</form>
+{% if error %}
+  <p style="color:red;">{{ error }}</p>
+{% endif %}
+{% if preview %}
+  <h3>Filtered Data Preview (first 5 rows):</h3>
+  {{ preview|safe }}
+{% endif %}
 """
 
-@app.route('/')
+@app.route("/", methods=["GET", "POST"])
 def index():
-    return render_template_string(HTML_PAGE)
+    error = None
+    preview_html = None
+    if request.method == "POST":
+        start_date_str = request.form.get("start_date")
+        end_date_str = request.form.get("end_date")
 
-@app.route('/filter')
-def filter_report():
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
+        # Convert strings to datetime objects
+        try:
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+            end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
+        except ValueError:
+            error = "Invalid date format. Please use YYYY-MM-DD."
+            return render_template_string(HTML_FORM, error=error)
 
-    if not start_date or not end_date:
-        return "Please provide start_date and end_date in YYYY-MM-DD format.", 400
+        if start_date > end_date:
+            error = "Start date cannot be after end date."
+            return render_template_string(HTML_FORM, error=error)
 
-    # Download the Excel file from Dropbox
+        # Load data and filter
+        df = pd.read_excel("latest.xlsx")
+        df["Shipped Date"] = pd.to_datetime(df["Shipped Date"], errors='coerce')
+
+        filtered = df[(df["Shipped Date"] >= start_date) & (df["Shipped Date"] <= end_date)]
+
+        if filtered.empty:
+            error = f"No data found between {start_date_str} and {end_date_str}."
+            return render_template_string(HTML_FORM, error=error)
+
+        # Save filtered to a file for download
+        filtered_file = "filtered_latest.xlsx"
+        filtered.to_excel(filtered_file, index=False)
+
+        # Preview first 5 rows as HTML table
+        preview_html = filtered.head().to_html(classes="table table-striped")
+
+        # Instead of forcing download immediately, show preview and a download link
+        return render_template_string(
+            HTML_FORM + """
+            <p>Filtered data contains {{ rows }} rows.</p>
+            <a href="/download?start_date={{ start_date }}&end_date={{ end_date }}">Download Excel</a>
+            """,
+            error=error,
+            preview=preview_html,
+            rows=len(filtered),
+            start_date=start_date_str,
+            end_date=end_date_str
+        )
+
+    return render_template_string(HTML_FORM)
+
+@app.route("/download")
+def download_filtered():
+    start_date_str = request.args.get("start_date")
+    end_date_str = request.args.get("end_date")
+
+    # Re-run filtering here to get fresh file
     try:
-        response = requests.get(DROPBOX_FILE_URL)
-        response.raise_for_status()
-    except Exception as e:
-        return f"Failed to download Excel file: {str(e)}", 500
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+        end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
+    except Exception:
+        return "Invalid date parameters.", 400
 
-    try:
-        # Load Excel file into DataFrame from bytes
-        df = pd.read_excel(io.BytesIO(response.content))
-    except Exception as e:
-        return f"Failed to read Excel file: {str(e)}", 500
+    df = pd.read_excel("latest.xlsx")
+    df["Shipped Date"] = pd.to_datetime(df["Shipped Date"], errors='coerce')
+    filtered = df[(df["Shipped Date"] >= start_date) & (df["Shipped Date"] <= end_date)]
 
-    # Check if 'shipped date' column exists (case insensitive)
-    df_columns_lower = [col.lower() for col in df.columns]
-    if 'shipped date' not in df_columns_lower:
-        return "The column 'shipped date' is missing in the Excel file.", 500
+    if filtered.empty:
+        return f"No data found between {start_date_str} and {end_date_str}.", 404
 
-    # Normalize column name to access
-    shipped_date_col = [col for col in df.columns if col.lower() == 'shipped date'][0]
-
-    # Convert shipped date to datetime
-    df[shipped_date_col] = pd.to_datetime(df[shipped_date_col], errors='coerce')
-
-    # Filter by date range
-    mask = (df[shipped_date_col] >= pd.to_datetime(start_date)) & (df[shipped_date_col] <= pd.to_datetime(end_date))
-    filtered_df = df.loc[mask]
-
-    if filtered_df.empty:
-        return f"No data found between {start_date} and {end_date}.", 404
-
-    # Export filtered data to CSV in memory
-    csv_buffer = io.StringIO()
-    filtered_df.to_csv(csv_buffer, index=False)
-    csv_buffer.seek(0)
-
-    filename = f"report_{start_date}_to_{end_date}.csv"
+    filtered_file = "filtered_latest.xlsx"
+    filtered.to_excel(filtered_file, index=False)
 
     return send_file(
-        io.BytesIO(csv_buffer.getvalue().encode('utf-8')),
-        mimetype='text/csv',
+        filtered_file,
         as_attachment=True,
-        download_name=filename
+        download_name="filtered_latest.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-@app.route('/ping')
-def ping():
-    return "pong", 200
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
