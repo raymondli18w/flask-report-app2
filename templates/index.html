@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Filter Shipped Date Range</title>
+    <style>
+      table.data { border-collapse: collapse; width: 100%; }
+      table.data, th, td { border: 1px solid black; padding: 5px; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>Filter Orders by Shipped Date Range</h1>
+    <form method="POST">
+        Start Date: <input type="date" name="start_date" value="{{ start_date }}">
+        End Date: <input type="date" name="end_date" value="{{ end_date }}">
+        <input type="submit" value="Filter">
+    </form>
+
+    {% if tables %}
+        <h2>Filtered Results</h2>
+        {{ tables|safe }}
+        <br>
+        <a href="/download">Download Filtered Excel</a>
+    {% endif %}
+</body>
+</html>
