@@ -1,68 +1,74 @@
 import os
 import pandas as pd
 import win32com.client as win32
-from datetime import datetime
+from datetime import datetime, timedelta
+import logging
 
-# Path to your master Excel file
+# ----------------- Logging -----------------
+logging.basicConfig(
+    filename="outlook_to_master.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+logging.info("Script started")
+
+# ----------------- Config -----------------
 MASTER_FILE = "master.xlsx"
-CUTOFF_DATE = datetime(2025, 8, 15)
-TARGET_FOLDER_NAME = "Warehouse Excel"  # Name of the folder you want to search
+TARGET_FOLDER_NAME = "Inbox"  # no subfolder, just main inbox
+MAX_EMAILS = 3  # stop after first 3 emails
+DAYS_LOOKBACK = 2
+cutoff_datetime = datetime.now() - timedelta(days=DAYS_LOOKBACK)
 
-# ----------------------------------------
-# Utility: find any Outlook folder by name
-# ----------------------------------------
-def find_folder(outlook, folder_name):
-    for store in outlook.Folders:
-        for f in store.Folders:
-            if f.Name.lower() == folder_name.lower():
-                return f
-    return None
-
-# Connect to Outlook
-outlook = win32.Dispatch("Outlook.Application").GetNamespace("MAPI")
-warehouse_folder = find_folder(outlook, TARGET_FOLDER_NAME)
-
-if warehouse_folder is None:
-    print(f"Folder '{TARGET_FOLDER_NAME}' not found!")
+# ----------------- Connect to Outlook -----------------
+try:
+    outlook = win32.Dispatch("Outlook.Application").GetNamespace("MAPI")
+    inbox = outlook.GetDefaultFolder(6)  # 6 = Inbox
+except Exception as e:
+    logging.error(f"Failed to connect to Outlook: {e}")
     exit()
 
-# Load or create master file
+# ----------------- Load master file -----------------
 if os.path.exists(MASTER_FILE):
     master_df = pd.read_excel(MASTER_FILE)
 else:
     master_df = pd.DataFrame()
 
-print("Master rows BEFORE append:", len(master_df))
+logging.info(f"Master rows BEFORE append: {len(master_df)}")
 
-# Filter messages
-messages = warehouse_folder.Items
-messages.Sort("[ReceivedTime]", True)
+# ----------------- Filter messages -----------------
+messages = inbox.Items
+messages.Sort("[ReceivedTime]", True)  # newest first
+messages = messages.Restrict(f"[ReceivedTime] >= '{cutoff_datetime.strftime('%m/%d/%Y %H:%M %p')}'")
+
+processed_count = 0
 
 for msg in messages:
-    if msg.ReceivedTime < CUTOFF_DATE:
-        continue
-    subject = msg.Subject or ""
-    if "latesttu01" in subject.lower():
-        for att in msg.Attachments:
-            if att.FileName.endswith(".xlsx"):
-                temp_path = os.path.join(os.getcwd(), att.FileName)
-                att.SaveAsFile(temp_path)
-                print(f"Downloaded: {att.FileName}")
+    try:
+        subject = msg.Subject or ""
+        if "latesttu01" in subject.lower():
+            for att in msg.Attachments:
+                if att.FileName.endswith(".xlsx"):
+                    temp_path = os.path.join(os.getcwd(), att.FileName)
+                    att.SaveAsFile(temp_path)
+                    logging.info(f"Downloaded attachment: {att.FileName}")
 
-                # Read attachment
-                df = pd.read_excel(temp_path)
+                    df = pd.read_excel(temp_path)
+                    master_df = pd.concat([master_df, df], ignore_index=True).drop_duplicates()
 
-                # Merge + skip duplicates
-                combined = pd.concat([master_df, df], ignore_index=True).drop_duplicates()
-                master_df = combined
+                    logging.info(f"Current master row count: {len(master_df)}")
+                    logging.info(f"Attachment preview:\n{df.head()}")
 
-                print("Current master row count:", len(master_df))
-                print("Preview:")
-                print(df.head())
+                    os.remove(temp_path)
 
-                os.remove(temp_path)  # cleanup temp file
+            processed_count += 1
+            if processed_count >= MAX_EMAILS:
+                logging.info(f"Processed {MAX_EMAILS} emails, stopping.")
+                break
+    except Exception as e:
+        logging.warning(f"Failed to process message: {e}")
 
-# Save updated master
+# ----------------- Save updated master -----------------
 master_df.to_excel(MASTER_FILE, index=False)
-print("Master rows AFTER append:", len(master_df))
-print("Master file updated.")
+logging.info(f"Master rows AFTER append: {len(master_df)}")
+logging.info("Master file updated successfully.")

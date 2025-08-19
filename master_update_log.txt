@@ -1,0 +1,16 @@
+2025-08-18 17:18:42,237 - INFO - Script started
+2025-08-18 17:18:44,184 - INFO - Connected to Outlook successfully
+2025-08-18 17:18:44,785 - INFO - Master rows BEFORE append: 0
+2025-08-18 17:18:52,302 - WARNING - Failed to process message in folder Junk Email: <unknown>.ReceivedTime
+2025-08-18 17:18:52,306 - WARNING - Failed to process message in folder Junk Email: <unknown>.ReceivedTime
+2025-08-18 17:18:52,316 - WARNING - Failed to process message in folder Junk Email: <unknown>.ReceivedTime
+2025-08-18 17:18:52,320 - WARNING - Failed to process message in folder Junk Email: <unknown>.ReceivedTime
+2025-08-18 17:18:52,325 - WARNING - Failed to process message in folder Junk Email: <unknown>.ReceivedTime
+2025-08-18 17:21:36,591 - INFO - Script started
+2025-08-18 17:21:36,730 - INFO - Connected to Outlook successfully
+2025-08-18 17:21:38,367 - INFO - Master rows BEFORE append: 0
+2025-08-18 17:21:41,042 - WARNING - Failed to process message in folder Junk Email: <unknown>.ReceivedTime
+2025-08-18 17:21:41,050 - WARNING - Failed to process message in folder Junk Email: <unknown>.ReceivedTime
+2025-08-18 17:21:41,062 - WARNING - Failed to process message in folder Junk Email: <unknown>.ReceivedTime
+2025-08-18 17:21:41,067 - WARNING - Failed to process message in folder Junk Email: <unknown>.ReceivedTime
+2025-08-18 17:21:41,073 - WARNING - Failed to process message in folder Junk Email: <unknown>.ReceivedTime

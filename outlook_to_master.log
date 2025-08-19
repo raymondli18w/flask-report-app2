@@ -1,0 +1,36 @@
+2025-08-18 17:53:01,727 - INFO - Script started
+2025-08-18 17:53:05,395 - INFO - Master rows BEFORE append: 174
+2025-08-18 17:53:05,700 - INFO - Downloaded attachment: 18WHE transaction nice col hf 08182025_1700.xlsx
+2025-08-18 17:53:06,102 - INFO - Current master row count: 212
+2025-08-18 17:53:06,187 - INFO - Attachment preview:
+  Facility  Customer Order Type  Dept#  ... Pallet QTY         Tracking No Units Per Pallet       EAN/UPC
+0  18W-CAN  TPVISION    Regular    NaN  ...     0.0048                 NaN                3  840063203495
+1  18W-CAN  TPVISION    Regular    NaN  ...     0.0757                 NaN                2  840063203563
+2  18W-CAN  TPVISION    Regular    NaN  ...     0.0758                 NaN                2  840063203563
+3  18W-CAN  TPVISION    Regular    NaN  ...     0.0082  1Z56E39W2016460389                3  840063201750
+4  18W-CAN  TPVISION    Regular    NaN  ...     0.0278  1Z56E39W2016460389                2  840063202368
+
+[5 rows x 54 columns]
+2025-08-18 17:53:06,354 - INFO - Downloaded attachment: 18WHE transaction nice col hf 08182025_1430.xlsx
+2025-08-18 17:53:06,646 - INFO - Current master row count: 212
+2025-08-18 17:53:06,689 - INFO - Attachment preview:
+  Facility  Customer Order Type  Dept#  ... Pallet QTY         Tracking No Units Per Pallet       EAN/UPC
+0  18W-CAN  TPVISION    Regular    NaN  ...     0.0048                 NaN                3  840063203495
+1  18W-CAN  TPVISION    Regular    NaN  ...     0.0757                 NaN                2  840063203563
+2  18W-CAN  TPVISION    Regular    NaN  ...     0.0758                 NaN                2  840063203563
+3  18W-CAN  TPVISION    Regular    NaN  ...     0.0082  1Z56E39W2016460389                3  840063201750
+4  18W-CAN  TPVISION    Regular    NaN  ...     0.0278  1Z56E39W2016460389                2  840063202368
+
+[5 rows x 54 columns]
+2025-08-18 17:53:06,747 - INFO - Downloaded attachment: 18WHE transaction nice col hf 08182025_1430.xlsx
+2025-08-18 17:53:07,164 - INFO - Current master row count: 212
+2025-08-18 17:53:07,209 - INFO - Attachment preview:
+  Facility  Customer Order Type  Dept#  ... Pallet QTY         Tracking No Units Per Pallet       EAN/UPC
+0  18W-CAN  TPVISION    Regular    NaN  ...     0.0048                 NaN                3  840063203495
+1  18W-CAN  TPVISION    Regular    NaN  ...     0.0757                 NaN                2  840063203563
+2  18W-CAN  TPVISION    Regular    NaN  ...     0.0758                 NaN                2  840063203563
+3  18W-CAN  TPVISION    Regular    NaN  ...     0.0082  1Z56E39W2016460389                3  840063201750
+4  18W-CAN  TPVISION    Regular    NaN  ...     0.0278  1Z56E39W2016460389                2  840063202368
+
+[5 rows x 54 columns]
+2025-08-18 17:53:07,212 - INFO - Processed 3 emails, stopping.
