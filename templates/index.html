@@ -1,25 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Filter Shipped Date Range</title>
+    <meta charset="UTF-8">
+    <title>Master Data</title>
     <style>
-      table.data { border-collapse: collapse; width: 100%; }
-      table.data, th, td { border: 1px solid black; padding: 5px; text-align: left; }
+        table.data {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        table.data th, table.data td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        table.data th {
+            background-color: #f2f2f2;
+        }
+        table.data {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
-    <h1>Filter Orders by Shipped Date Range</h1>
-    <form method="POST">
-        Start Date: <input type="date" name="start_date" value="{{ start_date }}">
-        End Date: <input type="date" name="end_date" value="{{ end_date }}">
+    <h1>Master Data</h1>
+
+    <!-- Filter Form -->
+    <form method="get" action="/">
+        <label>
+            Start Date:
+            <input type="date" name="start_date" value="{{ start_date or '' }}">
+        </label>
+        <label>
+            End Date:
+            <input type="date" name="end_date" value="{{ end_date or '' }}">
+        </label>
         <input type="submit" value="Filter">
     </form>
 
+    <!-- Render DataFrame -->
     {% if tables %}
-        <h2>Filtered Results</h2>
-        {{ tables|safe }}
-        <br>
-        <a href="/download">Download Filtered Excel</a>
+        {% for table in tables %}
+            {{ table|safe }}
+        {% endfor %}
+    {% else %}
+        <p>No data available.</p>
     {% endif %}
+
+    <!-- Download Link -->
+    <br>
+    <a href="/download?start_date={{ start_date or '' }}&end_date={{ end_date or '' }}">
+        Download filtered Excel
+    </a>
 </body>
 </html>
