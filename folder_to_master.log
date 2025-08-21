@@ -28,3 +28,18 @@
 [5 rows x 54 columns]
 2025-08-20 12:24:20,392 - INFO - Master rows AFTER append: 212
 2025-08-20 12:24:20,392 - INFO - Master file updated successfully.
+2025-08-20 17:07:14,927 - INFO - Script started
+2025-08-20 17:07:14,929 - INFO - No existing master file found. Starting new DataFrame.
+2025-08-20 17:07:14,931 - INFO - Processing latest file: 18WHE transaction nice col hf 08202025_1700.xlsx
+2025-08-20 17:07:16,709 - INFO - Current master row count: 175
+2025-08-20 17:07:16,753 - INFO - Preview:
+  Facility  Customer Order Type  Dept#  ... Units Per Pallet       EAN/UPC Internal Line         Internal
+0  18W-CAN  TPVISION    Regular    NaN  ...                3  840063203495         10000  S00301242-10000
+1  18W-CAN  TPVISION    Regular    NaN  ...                2  840063203563         10000  S00302918-10000
+2  18W-CAN  TPVISION    Regular    NaN  ...                2  840063203563         20000  S00302918-20000
+3  18W-CAN  TPVISION    Regular    NaN  ...                3  840063201750         10000  S00302919-10000
+4  18W-CAN  TPVISION    Regular    NaN  ...                2  840063202368         20000  S00302919-20000
+
+[5 rows x 56 columns]
+2025-08-20 17:07:17,063 - INFO - Master rows AFTER append: 175
+2025-08-20 17:07:17,063 - INFO - Master file updated successfully.
