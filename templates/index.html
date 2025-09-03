@@ -2,55 +2,150 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Master Data</title>
+    <title>18Wheels Master Data</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .filter-form {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .filter-form label {
+            margin-right: 15px;
+            font-weight: bold;
+        }
+        .filter-form input[type="date"] {
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .filter-form input[type="submit"] {
+            background: #3498db;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .filter-form input[type="submit"]:hover {
+            background: #2980b9;
+        }
         table.data {
             border-collapse: collapse;
             width: 100%;
+            margin: 15px 0;
         }
         table.data th, table.data td {
             border: 1px solid #ddd;
             padding: 8px;
+            text-align: left;
         }
         table.data th {
+            background-color: #2c3e50;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+        table.data tr:nth-child(even) {
             background-color: #f2f2f2;
         }
-        table.data {
-            display: block;
-            overflow-x: auto;
-            white-space: nowrap;
+        table.data tr:hover {
+            background-color: #e9f7fe;
+        }
+        .message {
+            color: #27ae60;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 10px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+        }
+        .download-section {
+            margin: 20px 0;
+        }
+        .download-btn {
+            display: inline-block;
+            background: #27ae60;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .download-btn:hover {
+            background: #219653;
+        }
+        .emergency-download {
+            background: #e74c3c;
+        }
+        .emergency-download:hover {
+            background: #c0392b;
         }
     </style>
 </head>
 <body>
-    <h1>Master Data</h1>
+    <h1>18Wheels Master Data</h1>
+
+    <!-- Status Message -->
+    {% if message %}
+        <div class="message">
+            📊 {{ message }}
+        </div>
+    {% endif %}
 
     <!-- Filter Form -->
-    <form method="get" action="/">
-        <label>
-            Start Date:
-            <input type="date" name="start_date" value="{{ start_date or '' }}">
-        </label>
-        <label>
-            End Date:
-            <input type="date" name="end_date" value="{{ end_date or '' }}">
-        </label>
-        <input type="submit" value="Filter">
-    </form>
+    <div class="filter-form">
+        <form method="get" action="/">
+            <label>
+                Start Date:
+                <input type="date" name="start_date" value="{{ start_date or '' }}">
+            </label>
+            <label>
+                End Date:
+                <input type="date" name="end_date" value="{{ end_date or '' }}">
+            </label>
+            <input type="submit" value="Apply Filter">
+        </form>
+    </div>
 
     <!-- Render DataFrame -->
     {% if tables %}
-        {% for table in tables %}
-            {{ table|safe }}
-        {% endfor %}
+        <div style="overflow-x: auto;">
+            {% for table in tables %}
+                {{ table|safe }}
+            {% endfor %}
+        </div>
     {% else %}
         <p>No data available.</p>
     {% endif %}
 
-    <!-- Download Link -->
-    <br>
-    <a href="/download?start_date={{ start_date or '' }}&end_date={{ end_date or '' }}">
-        Download filtered Excel
-    </a>
+    <!-- Download Section -->
+    <div class="download-section">
+        <a href="/download?start_date={{ start_date or '' }}&end_date={{ end_date or '' }}" 
+           class="download-btn">
+            📥 Download Filtered Excel
+        </a>
+        
+        <a href="/latest" class="download-btn emergency-download">
+            🚨 Download Latest Data (No Filter)
+        </a>
+
+        <br><br>
+        <small>
+            <strong>Pro Tip:</strong> Use Ctrl+F5 to refresh if data looks outdated |
+            <a href="/version" style="color: #666;">Check last update time</a>
+        </small>
+    </div>
 </body>
 </html>

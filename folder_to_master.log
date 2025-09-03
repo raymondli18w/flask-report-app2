@@ -9908,3 +9908,18 @@
 [5 rows x 56 columns]
 2025-09-03 12:21:40,317 - INFO - Master rows AFTER append: 213
 2025-09-03 12:21:40,317 - INFO - Master file updated successfully.
+2025-09-03 12:51:32,833 - INFO - Script started
+2025-09-03 12:51:35,200 - INFO - Loaded master file: master.xlsx (213 rows)
+2025-09-03 12:51:36,865 - INFO - Processing latest file: 18WHE transaction nice col hf 09032025_1225.xlsx
+2025-09-03 12:51:37,617 - INFO - Current master row count: 213
+2025-09-03 12:51:37,701 - INFO - Preview:
+  Facility  Customer Order Type  Dept#  ... Units Per Pallet       EAN/UPC Internal Line         Internal
+0  18W-CAN  TPVISION    Regular    NaN  ...                1  685417736485         10000  S00357206-10000
+1  18W-CAN  TPVISION    Regular    NaN  ...                1  685417733583         20000  S00357206-20000
+2  18W-CAN  TPVISION    Regular   72.0  ...                2  840063202368         10000  S00357370-10000
+3  18W-CAN  TPVISION    Regular   72.0  ...                2  840063202351         20000  S00357370-20000
+4  18W-CAN  TPVISION    Regular   72.0  ...                2  840063202368         10000  S00357371-10000
+
+[5 rows x 56 columns]
+2025-09-03 12:51:38,113 - INFO - Master rows AFTER append: 213
+2025-09-03 12:51:38,113 - INFO - Master file updated successfully.

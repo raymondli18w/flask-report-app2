@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 import logging
+import subprocess
+from datetime import datetime
 
 # ----------------- Logging -----------------
 logging.basicConfig(
@@ -13,6 +15,7 @@ logging.info("Script started")
 # ----------------- Config -----------------
 MASTER_FILE = "master.xlsx"
 SOURCE_FOLDER = r"C:\Users\RaymondLi\OneDrive - 18wheels.ca\auto 1\auto 22"
+REPO_PATH = r"C:\Users\RaymondLi\Documents\flask_app"  # Your Flask app directory
 
 # ----------------- Load or create master file -----------------
 if os.path.exists(MASTER_FILE):
@@ -45,3 +48,25 @@ else:
 master_df.to_excel(MASTER_FILE, index=False, engine="openpyxl")
 logging.info(f"Master rows AFTER append: {len(master_df)}")
 logging.info("Master file updated successfully.")
+
+# ----------------- AUTO-PUSH TO GITHUB -----------------
+def git_push_to_github():
+    """Automatically push updated master.xlsx to GitHub"""
+    try:
+        # Navigate to your repository
+        os.chdir(REPO_PATH)
+        
+        # Git commands
+        subprocess.run(["git", "add", "master.xlsx"], check=True)
+        subprocess.run(["git", "commit", "-m", f"Auto-update: {datetime.now().strftime('%Y-%m-%d %H:%M')}"], check=True)
+        subprocess.run(["git", "push", "origin", "main"], check=True)
+        
+        logging.info("✅ Successfully pushed master.xlsx to GitHub")
+        logging.info("✅ Render will auto-deploy within 2-3 minutes")
+        
+    except Exception as e:
+        logging.error(f"❌ Git push failed: {e}")
+
+# Call the auto-push function
+git_push_to_github()
+logging.info("Script completed successfully")
